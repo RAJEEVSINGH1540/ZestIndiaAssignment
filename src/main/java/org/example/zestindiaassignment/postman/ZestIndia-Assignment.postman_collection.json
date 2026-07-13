@@ -1,0 +1,1427 @@
+{
+  "info": {
+    "_postman_id": "zest-india-assignment-2025",
+    "name": "ZestIndia Assignment API",
+    "description": "Complete API collection for ZestIndia Employee Management System with JWT Authentication",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "empId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "AUTH MODULE",
+      "description": "User Registration and Login endpoints - No JWT required",
+      "item": [
+        {
+          "name": "01 - Register ADMIN User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201 Created', function() {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response has userId', function() {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.data.userId).to.not.be.empty;",
+                  "    pm.expect(json.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('Role is ADMIN', function() {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.data.role).to.eql('ADMIN');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"adminuser\",\n    \"email\": \"admin@zestindia.com\",\n    \"password\": \"admin123\",\n    \"fullName\": \"Admin User\",\n    \"role\": \"ADMIN\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Register a new ADMIN user. No JWT token required."
+          },
+          "response": [
+            {
+              "name": "Success - 201 Created",
+              "status": "Created",
+              "code": 201,
+              "body": "{\n    \"success\": true,\n    \"message\": \"User registered successfully\",\n    \"data\": {\n        \"userId\": \"USR2025-0042\",\n        \"username\": \"adminuser\",\n        \"email\": \"admin@zestindia.com\",\n        \"fullName\": \"Admin User\",\n        \"role\": \"ADMIN\"\n    },\n    \"timestamp\": \"2025-01-15T10:30:00\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "02 - Register Normal USER",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201 Created', function() {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Role is USER', function() {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.data.role).to.eql('USER');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"normaluser\",\n    \"email\": \"user@zestindia.com\",\n    \"password\": \"user123\",\n    \"fullName\": \"Normal User\",\n    \"role\": \"USER\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Register a normal USER. No JWT token required."
+          },
+          "response": []
+        },
+        {
+          "name": "03 - Register Duplicate Username (Should Fail)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 409 Conflict', function() {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "",
+                  "pm.test('Error message present', function() {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.false;",
+                  "    pm.expect(json.error).to.include('already taken');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"adminuser\",\n    \"email\": \"another@zestindia.com\",\n    \"password\": \"admin123\",\n    \"fullName\": \"Duplicate Admin\",\n    \"role\": \"ADMIN\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Try to register with existing username — should return 409 Conflict."
+          },
+          "response": []
+        },
+        {
+          "name": "04 - Register Validation Error (Should Fail)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 400 Bad Request', function() {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Validation errors present', function() {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.false;",
+                  "    pm.expect(json.message).to.eql('Validation failed');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"ab\",\n    \"email\": \"not-an-email\",\n    \"password\": \"123\",\n    \"fullName\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Send invalid data — should return 400 with validation errors."
+          },
+          "response": []
+        },
+        {
+          "name": "05 - Login as ADMIN (Save Token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 OK', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Token received', function() {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.data.token).to.not.be.empty;",
+                  "    pm.expect(json.data.tokenType).to.eql('Bearer');",
+                  "    // Save token to collection variable automatically",
+                  "    pm.collectionVariables.set('adminToken', json.data.token);",
+                  "    console.log('Admin Token saved: ' + json.data.token);",
+                  "});",
+                  "",
+                  "pm.test('Role is ADMIN', function() {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.data.role).to.eql('ADMIN');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"usernameOrEmail\": \"adminuser\",\n    \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Login as ADMIN. Token is automatically saved to {{adminToken}} variable."
+          },
+          "response": [
+            {
+              "name": "Success - 200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n    \"success\": true,\n    \"message\": \"Login successful\",\n    \"data\": {\n        \"token\": \"eyJhbGciOiJIUzI1NiJ9...\",\n        \"tokenType\": \"Bearer\",\n        \"userId\": \"USR2025-0042\",\n        \"username\": \"adminuser\",\n        \"email\": \"admin@zestindia.com\",\n        \"role\": \"ADMIN\",\n        \"expiresIn\": 86400000\n    },\n    \"timestamp\": \"2025-01-15T10:31:00\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "06 - Login as Normal USER (Save Token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 OK', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('User token saved', function() {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.data.token).to.not.be.empty;",
+                  "    pm.collectionVariables.set('userToken', json.data.token);",
+                  "    console.log('User Token saved: ' + json.data.token);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"usernameOrEmail\": \"normaluser\",\n    \"password\": \"user123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Login as normal USER. Token saved to {{userToken}} variable."
+          },
+          "response": []
+        },
+        {
+          "name": "07 - Login Wrong Password (Should Fail)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 401 Unauthorized', function() {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test('Authentication failed message', function() {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.false;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"usernameOrEmail\": \"adminuser\",\n    \"password\": \"wrongpassword\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Login with wrong password — should return 401."
+          },
+          "response": []
+        },
+        {
+          "name": "08 - Login by Email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 OK', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Can login with email too', function() {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.data.token).to.not.be.empty;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"usernameOrEmail\": \"admin@zestindia.com\",\n    \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Login using email instead of username — both work."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "EMPLOYEE MODULE — ADMIN",
+      "description": "Employee CRUD operations — ADMIN role required for write operations",
+      "item": [
+        {
+          "name": "09 - Create Employee 1 (Engineering)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201 Created', function() {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Employee ID generated', function() {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.data.empId).to.not.be.empty;",
+                  "    pm.expect(json.data.empId).to.include('EMP');",
+                  "    // Save empId for later tests",
+                  "    pm.collectionVariables.set('empId', json.data.empId);",
+                  "    console.log('Employee ID: ' + json.data.empId);",
+                  "});",
+                  "",
+                  "pm.test('Status is ACTIVE by default', function() {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.data.status).to.eql('ACTIVE');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Alice Johnson\",\n    \"email\": \"alice@zestindia.com\",\n    \"department\": \"Engineering\",\n    \"position\": \"Senior Developer\",\n    \"salary\": 95000.00,\n    \"dateOfJoining\": \"2024-01-15\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/employees",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees"]
+            },
+            "description": "Create employee. ADMIN token required. empId auto-saved to variable."
+          },
+          "response": [
+            {
+              "name": "Success - 201 Created",
+              "status": "Created",
+              "code": 201,
+              "body": "{\n    \"success\": true,\n    \"message\": \"Employee created\",\n    \"data\": {\n        \"empId\": \"EMP2025-1234\",\n        \"name\": \"Alice Johnson\",\n        \"email\": \"alice@zestindia.com\",\n        \"department\": \"Engineering\",\n        \"position\": \"Senior Developer\",\n        \"salary\": 95000.00,\n        \"dateOfJoining\": \"2024-01-15\",\n        \"status\": \"ACTIVE\",\n        \"createdAt\": \"2025-01-15T10:32:00\",\n        \"updatedAt\": \"2025-01-15T10:32:00\"\n    },\n    \"timestamp\": \"2025-01-15T10:32:00\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "10 - Create Employee 2 (HR)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201 Created', function() {",
+                  "    pm.response.to.have.status(201);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Bob Smith\",\n    \"email\": \"bob@zestindia.com\",\n    \"department\": \"HR\",\n    \"position\": \"HR Manager\",\n    \"salary\": 70000.00,\n    \"dateOfJoining\": \"2023-06-01\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/employees",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "11 - Create Employee 3 (Finance)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Carol White\",\n    \"email\": \"carol@zestindia.com\",\n    \"department\": \"Finance\",\n    \"position\": \"Financial Analyst\",\n    \"salary\": 80000.00,\n    \"dateOfJoining\": \"2022-09-10\",\n    \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/employees",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "12 - Create Employee 4 (Engineering)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"David Brown\",\n    \"email\": \"david@zestindia.com\",\n    \"department\": \"Engineering\",\n    \"position\": \"DevOps Engineer\",\n    \"salary\": 88000.00,\n    \"dateOfJoining\": \"2023-03-20\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/employees",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "13 - Create Employee 5 (Marketing - INACTIVE)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Eve Davis\",\n    \"email\": \"eve@zestindia.com\",\n    \"department\": \"Marketing\",\n    \"position\": \"Marketing Lead\",\n    \"salary\": 72000.00,\n    \"dateOfJoining\": \"2021-11-05\",\n    \"status\": \"INACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/employees",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "14 - Create Employee Duplicate Email (Should Fail)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 409 Conflict', function() {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "",
+                  "pm.test('Duplicate email error', function() {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.false;",
+                  "    pm.expect(json.error).to.include('already exists');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Duplicate Person\",\n    \"email\": \"alice@zestindia.com\",\n    \"department\": \"Engineering\",\n    \"position\": \"Developer\",\n    \"salary\": 60000.00,\n    \"dateOfJoining\": \"2024-01-01\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/employees",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees"]
+            },
+            "description": "Try to create employee with existing email — should fail with 409."
+          },
+          "response": []
+        },
+        {
+          "name": "15 - Create Employee No Token (Should Fail 401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 401 Unauthorized', function() {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"No Token User\",\n    \"email\": \"notoken@zestindia.com\",\n    \"department\": \"IT\",\n    \"position\": \"Analyst\",\n    \"salary\": 50000.00,\n    \"dateOfJoining\": \"2024-01-01\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/employees",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees"]
+            },
+            "description": "No Authorization header — should return 401."
+          },
+          "response": []
+        },
+        {
+          "name": "16 - Create Employee USER Token (Should Fail 403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 403 Forbidden', function() {",
+                  "    pm.response.to.have.status(403);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Forbidden User\",\n    \"email\": \"forbidden@zestindia.com\",\n    \"department\": \"IT\",\n    \"position\": \"Analyst\",\n    \"salary\": 50000.00,\n    \"dateOfJoining\": \"2024-01-01\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/employees",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees"]
+            },
+            "description": "USER role tries to create employee — should return 403 Forbidden."
+          },
+          "response": []
+        },
+        {
+          "name": "17 - Update Employee (ADMIN)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 OK', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Employee updated correctly', function() {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.data.position).to.eql('Lead Developer');",
+                  "    pm.expect(json.data.salary).to.eql(110000.00);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Alice Johnson\",\n    \"email\": \"alice@zestindia.com\",\n    \"department\": \"Engineering\",\n    \"position\": \"Lead Developer\",\n    \"salary\": 110000.00,\n    \"dateOfJoining\": \"2024-01-15\",\n    \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/{{empId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees", "{{empId}}"]
+            },
+            "description": "Update employee by ID. Uses {{empId}} saved from create request."
+          },
+          "response": []
+        },
+        {
+          "name": "18 - Update Employee USER Token (Should Fail 403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 403 Forbidden', function() {",
+                  "    pm.response.to.have.status(403);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Alice Johnson\",\n    \"email\": \"alice@zestindia.com\",\n    \"department\": \"Engineering\",\n    \"position\": \"Junior Developer\",\n    \"salary\": 50000.00,\n    \"dateOfJoining\": \"2024-01-15\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/{{empId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees", "{{empId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "19 - Update Employee Not Found (Should Fail 404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 404 Not Found', function() {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Ghost Employee\",\n    \"email\": \"ghost@zestindia.com\",\n    \"department\": \"Engineering\",\n    \"position\": \"Developer\",\n    \"salary\": 60000.00,\n    \"dateOfJoining\": \"2024-01-01\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/EMP2025-9999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees", "EMP2025-9999"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "20 - Delete Employee (ADMIN)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 OK', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Delete success message', function() {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.true;",
+                  "    pm.expect(json.message).to.include('deleted');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/{{empId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees", "{{empId}}"]
+            },
+            "description": "Delete employee by ID. ADMIN only."
+          },
+          "response": []
+        },
+        {
+          "name": "21 - Delete Employee USER Token (Should Fail 403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 403 Forbidden', function() {",
+                  "    pm.response.to.have.status(403);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/{{empId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees", "{{empId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "EMPLOYEE MODULE — READ",
+      "description": "Read operations — Any authenticated user can access",
+      "item": [
+        {
+          "name": "22 - Get Employee By ID (ADMIN Token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 OK', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Employee data returned', function() {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.data.empId).to.not.be.empty;",
+                  "    pm.expect(json.data.name).to.not.be.empty;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/{{empId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees", "{{empId}}"]
+            },
+            "description": "Get single employee by ID."
+          },
+          "response": []
+        },
+        {
+          "name": "23 - Get Employee By ID (USER Token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 OK — USER can read', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/{{empId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees", "{{empId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "24 - Get Employee Not Found (Should Fail 404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 404 Not Found', function() {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/EMP2025-9999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees", "EMP2025-9999"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "25 - Get All Employees (Default Pagination)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 OK', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Pagination data present', function() {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.data.content).to.be.an('array');",
+                  "    pm.expect(json.data.totalElements).to.be.above(0);",
+                  "    pm.expect(json.data.totalPages).to.be.above(0);",
+                  "    pm.expect(json.data.size).to.eql(10);",
+                  "    pm.expect(json.data.number).to.eql(0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees"]
+            },
+            "description": "Get all employees with default pagination (page=0, size=10)."
+          },
+          "response": []
+        },
+        {
+          "name": "26 - Get All Employees Page 0 Size 2",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 OK', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Page size is 2', function() {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.data.content.length).to.be.at.most(2);",
+                  "    pm.expect(json.data.size).to.eql(2);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees?page=0&size=2",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "2" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "27 - Get All Employees Sort by Name ASC",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees?page=0&size=10&sortBy=name&sortDir=asc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees"],
+              "query": [
+                { "key": "page",    "value": "0" },
+                { "key": "size",    "value": "10" },
+                { "key": "sortBy",  "value": "name" },
+                { "key": "sortDir", "value": "asc" }
+              ]
+            },
+            "description": "Get all employees sorted by name ascending."
+          },
+          "response": []
+        },
+        {
+          "name": "28 - Get All Employees Sort by Salary DESC",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees?page=0&size=10&sortBy=salary&sortDir=desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees"],
+              "query": [
+                { "key": "page",    "value": "0" },
+                { "key": "size",    "value": "10" },
+                { "key": "sortBy",  "value": "salary" },
+                { "key": "sortDir", "value": "desc" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "29 - Get All Page 1 Size 2 (Second Page)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees?page=1&size=2",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "size", "value": "2" }
+              ]
+            },
+            "description": "Get second page of results."
+          },
+          "response": []
+        },
+        {
+          "name": "30 - Search by Name",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 OK', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Results contain Alice', function() {",
+                  "    var json = pm.response.json();",
+                  "    json.data.content.forEach(function(emp) {",
+                  "        pm.expect(emp.name.toLowerCase()).to.include('alice');",
+                  "    });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/search?name=Alice",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees", "search"],
+              "query": [
+                { "key": "name", "value": "Alice" }
+              ]
+            },
+            "description": "Search employees by name — partial match supported."
+          },
+          "response": []
+        },
+        {
+          "name": "31 - Search by Department",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 OK', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('All results in Engineering dept', function() {",
+                  "    var json = pm.response.json();",
+                  "    json.data.content.forEach(function(emp) {",
+                  "        pm.expect(emp.department).to.eql('Engineering');",
+                  "    });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/search?department=Engineering",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees", "search"],
+              "query": [
+                { "key": "department", "value": "Engineering" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "32 - Search by Status ACTIVE",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/search?status=ACTIVE",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees", "search"],
+              "query": [
+                { "key": "status", "value": "ACTIVE" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "33 - Search by Status INACTIVE",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/search?status=INACTIVE",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees", "search"],
+              "query": [
+                { "key": "status", "value": "INACTIVE" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "34 - Search by Department AND Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/search?department=Engineering&status=ACTIVE",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees", "search"],
+              "query": [
+                { "key": "department", "value": "Engineering" },
+                { "key": "status",     "value": "ACTIVE" }
+              ]
+            },
+            "description": "Search with multiple filters combined."
+          },
+          "response": []
+        },
+        {
+          "name": "35 - Search by Name AND Department AND Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/search?name=Bob&department=HR&status=ACTIVE",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees", "search"],
+              "query": [
+                { "key": "name",       "value": "Bob" },
+                { "key": "department", "value": "HR" },
+                { "key": "status",     "value": "ACTIVE" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "36 - Search with Pagination and Sorting",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/search?department=Engineering&page=0&size=5&sortBy=salary&sortDir=desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees", "search"],
+              "query": [
+                { "key": "department", "value": "Engineering" },
+                { "key": "page",       "value": "0" },
+                { "key": "size",       "value": "5" },
+                { "key": "sortBy",     "value": "salary" },
+                { "key": "sortDir",    "value": "desc" }
+              ]
+            },
+            "description": "Search Engineering dept sorted by salary desc."
+          },
+          "response": []
+        },
+        {
+          "name": "37 - Search No Match (Empty Result)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 OK', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Empty result', function() {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.data.content).to.be.empty;",
+                  "    pm.expect(json.data.totalElements).to.eql(0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/search?name=XYZNOTEXIST",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees", "search"],
+              "query": [
+                { "key": "name", "value": "XYZNOTEXIST" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "38 - Get All Employees USER Token (Should Work)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 — USER can read list', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees"]
+            },
+            "description": "Normal user CAN read employee list."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
